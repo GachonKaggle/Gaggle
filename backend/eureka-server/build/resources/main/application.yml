@@ -1,0 +1,22 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  client:
+    register-with-eureka: false  # 자기 자신을 서비스로 등록하지 않음
+    fetch-registry: false
+    healthcheck:
+      enabled: true
+  server:
+    wait-time-in-ms-when-sync-empty: 0
+
+# (선택) Eureka 콘솔 한글 깨짐 방지
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

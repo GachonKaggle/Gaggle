@@ -1,0 +1,50 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lowerCaseServiceId: true
+      routes:
+        - id: comparision-service
+          uri: lb://COMPARISION-SERVER
+          predicates:
+            - Path=/api/comparision/**
+        - id: result-service
+          uri: lb://RESULT-SERVER
+          predicates:
+            - Path=/api/result/**
+        - id: leaderboard-service
+          uri: lb://LEADERBOARD-SERVER
+          predicates:
+            - Path=/api/leaderboard/**
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+            allowedHeaders: "*"
+            allowCredentials: true
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.server: DEBUG

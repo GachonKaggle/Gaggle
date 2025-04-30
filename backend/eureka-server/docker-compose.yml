@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  eureka-server:
+    build: .
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+    networks:
+      - eureka_net
+networks:
+  eureka_net:
+    driver: bridge

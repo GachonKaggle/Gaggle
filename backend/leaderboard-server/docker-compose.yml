@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  strike-server:
+    build: .
+    container_name: leaderboard-server
+    ports:
+      - "9003:9003"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+    networks:
+      - leaderboard_net
+networks:
+  leaderboard_net:
+    driver: bridge

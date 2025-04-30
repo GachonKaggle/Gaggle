@@ -1,0 +1,13 @@
+services:
+  api-gateway:
+    build: .
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+    networks:
+      - gateway_net
+networks:
+  gateway_net:
+    driver: bridge

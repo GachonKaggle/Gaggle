@@ -1,0 +1,78 @@
+services:
+  db:
+      image: mysql:8.0
+      container_name: my-mysql
+      restart: always
+      environment:
+        MYSQL_ROOT_PASSWORD: 1234
+        MYSQL_DATABASE: mydb
+        MYSQL_USER: myuser
+        MYSQL_PASSWORD: 1234
+      ports:
+        - "3306:3306"
+      volumes:
+        - ./mysql-data:/var/lib/mysql
+      # (옵션) 한글/UTF-8 설정
+      command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  eureka-server:
+    build: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - backend
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    depends_on:
+      - eureka-server
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761/eureka/
+    networks:
+      - backend
+
+  comparision-server:
+    build: ./comparision-server
+    container_name: comparision-server
+    depends_on:
+      - eureka-server
+    ports:
+      - "9001:9001"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - backend
+
+  result-server:
+    build: ./result-server
+    container_name: result-server
+    depends_on:
+      - eureka-server
+    ports:
+      - "9002:9002"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - backend
+
+  leaderboard-server:
+    build: ./leaderboard-server
+    container_name: leaderboard-server
+    depends_on:
+      - eureka-server
+    ports:
+      - "9003:9003"
+    environment:
+      - EUREKA_SERVER=http://eureka-server:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

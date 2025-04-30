@@ -1,0 +1,13 @@
+services:
+  strike-server:
+    build: .
+    container_name: comparision-server
+    ports:
+      - "9001:9001"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+    networks:
+      - comparision_net
+networks:
+  comparision_net:
+    driver: bridge
