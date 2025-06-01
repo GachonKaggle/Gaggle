@@ -1,10 +1,14 @@
-package com.yourorg.leaderboard.port.out;
+package com.yourorg.leaderboard.port.out; // Package declaration for outbound port
 
-import com.yourorg.leaderboard.adapter.in.dto.LeaderBoardDto;
-import java.util.List;
+import com.yourorg.leaderboard.adapter.in.dto.LeaderBoardDto; // Import LeaderBoardDto for returning leaderboard data
+import java.util.List; // Import List from java.util
 
-// 반드시 인터페이스!
+// This is an outbound port interface used to abstract leaderboard data retrieval logic
 public interface LeaderBoardQueryPort {
+
+    // Loads the leaderboard data for all users for a specific task, sorted by psnrAvg
     List<LeaderBoardDto> loadLeaderBoardsByTask(String task);
+
+    // Loads the leaderboard data for a specific user in a given task context
     List<LeaderBoardDto> loadLeaderBoardsByUserAndTask(String userId, String task);
 }

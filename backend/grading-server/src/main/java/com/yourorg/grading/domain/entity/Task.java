@@ -13,13 +13,20 @@ import nonapi.io.github.classgraph.json.Id;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+
+// This class maps to the "task" collection in MongoDB
 @Document(collection = "task")
 public class Task {
+
+    // Unique identifier for each task document
     @Id
     private String taskId;
+
+    // Task name must be unique in the collection (enforced by index)
     @Indexed(unique = true)
     private String taskName;
 
+    // Custom constructor for initializing only taskName (MongoDB will generate taskId)
     public Task(String taskName) {
         this.taskName = taskName;
     }

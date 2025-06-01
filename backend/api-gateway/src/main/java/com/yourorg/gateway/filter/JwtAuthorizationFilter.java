@@ -13,23 +13,25 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-@Component
+@Component  // Marks this class as a Spring Bean so it can be auto-detected
 public class JwtAuthorizationFilter implements GlobalFilter, Ordered {
 
+    // Inject the JWT secret key from application properties or default to "mysecret"
     @Value("${jwt.secret:mysecret}")
     private String jwtSecret;
 
-    // 인증 예외 경로 패턴
+    // Define paths that should be excluded from JWT authentication
     private static final String[] IGNORE_PATHS = {
-        "/api/public/",         // 공개 API
-        "/api/user-info/login", // 로그인
-        "/api/user-info/signup",// 회원가입
-        "/health",              // 헬스체크
-        "/actuator/health",      // 헬스체크
-        "/webjars/swagger-ui/index.html",
-        "/swagger-ui/index.html",
+        "/api/public/",          // Public API
+        "/api/user-info/login",  // Login endpoint
+        "/api/user-info/signup", // Signup endpoint
+        "/health",               // Health check endpoint
+        "/actuator/health",      // Spring Actuator health check
+        "/webjars/swagger-ui/index.html", // Swagger UI static path
+        "/swagger-ui/index.html",         // Swagger UI main page
     };
 
+    // Check if the current request path should bypass authentication
     private boolean isIgnored(String path) {
         for (String prefix : IGNORE_PATHS) {
             if (path.equals(prefix) || path.startsWith(prefix + "/")) return true;
@@ -37,42 +39,53 @@ public class JwtAuthorizationFilter implements GlobalFilter, Ordered {
         return false;
     }
 
+    // Main filtering logic that intercepts all HTTP requests
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
-        // 인증 예외 경로는 통과
+        // Skip authentication if path is in ignore list
         if (isIgnored(path)) {
             return chain.filter(exchange);
         }
 
+        // Extract Authorization header
         String authHeader = exchange.getRequest().getHeaders().getFirst("Authorization");
-        System.out.println("인증 헤더: " + authHeader);
+        System.out.println("Authorization Header: " + authHeader);
+
+        // Check if header is present and starts with Bearer token
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.replace("Bearer ", "");
+            String token = authHeader.replace("Bearer ", ""); // Remove "Bearer " prefix
+
             try {
+                // Parse and validate the JWT token
                 Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(Keys.hmacShaKeyFor(jwtSecret.getBytes()))
+                        .setSigningKey(Keys.hmacShaKeyFor(jwtSecret.getBytes())) // Set signing key
                         .build()
-                        .parseClaimsJws(token)
-                        .getBody();
+                        .parseClaimsJws(token)  // Parse the JWT
+                        .getBody();             // Extract claims
 
                 System.out.println("JWT Valid. Subject: " + claims.getSubject());
+
+                // Continue to the next filter if token is valid
                 return chain.filter(exchange);
             } catch (Exception e) {
+                // JWT is invalid or expired
                 e.printStackTrace();
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED); // Return 401 Unauthorized
                 return exchange.getResponse().setComplete();
             }
         }
-        System.out.println("인증 헤더 없음");
-        // 인증 헤더 없음: 401
-        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+
+        // Authorization header is missing or not valid
+        System.out.println("No Authorization header found");
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED); // Return 401 Unauthorized
         return exchange.getResponse().setComplete();
     }
 
+    // Set filter order: a lower number means higher priority
     @Override
     public int getOrder() {
-        return -1; // 우선 순위 높게
+        return -1;  // High priority (runs early in filter chain)
     }
 }
