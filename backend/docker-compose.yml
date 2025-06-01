@@ -1,19 +1,54 @@
+version: '3.8'
+
 services:
-  db:
-      image: mysql:8.0
-      container_name: my-mysql
-      restart: always
-      environment:
-        MYSQL_ROOT_PASSWORD: 1234
-        MYSQL_DATABASE: mydb
-        MYSQL_USER: myuser
-        MYSQL_PASSWORD: 1234
-      ports:
-        - "3306:3306"
-      volumes:
-        - ./mysql-data:/var/lib/mysql
-      # (옵션) 한글/UTF-8 설정
-      command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  # ====================== MongoDB ======================
+  mongodb:
+    image: mongo:7.0
+    container_name: main-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: mongo123
+      MONGO_INITDB_DATABASE: myapp_db
+    networks:
+      - backend
+
+  # ================== 인프라 서비스 =====================
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: my-kafka
+    ports:
+      - "9092:9092"
+    networks:
+      - backend
+    environment:
+      - KAFKA_HEAP_OPTS=-Xmx8g -Xms4g
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_KRAFT_CLUSTER_ID=4K3q9VdZT16IJIlJXaBknQ
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_LISTENERS=CONTROLLER://:9093,PLAINTEXT://:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_MESSAGE_MAX_BYTES=524288000
+      - KAFKA_CFG_REPLICA_FETCH_MAX_BYTES=524288000
+      - KAFKA_CFG_OFFSETS_TOPIC_SEGMENT_BYTES=524288000
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_SEGMENT_BYTES=524288000
+      - KAFKA_CFG_SHARE_COORDINATOR_STATE_TOPIC_SEGMENT_BYTES=524288000
+      - KAFKA_CFG_FETCH_MAX_BYTES=524288000
+      - KAFKA_CFG_SOCKET_REQUEST_MAX_BYTES=524288000
+      - KAFKA_CFG_REPLICA_FETCH_RESPONSE_MAX_BYTES=524288000
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server kafka:9092 --list > /dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 20s
+      retries: 15
+
   eureka-server:
     build: ./eureka-server
     container_name: eureka-server
@@ -33,30 +68,19 @@ services:
       - EUREKA_SERVER=http://eureka-server:8761/eureka/
     networks:
       - backend
-
+  # ========== 백엔드 서비스: 몽고DB 이용 ==========
   comparision-server:
     build: ./comparision-server
     container_name: comparision-server
     depends_on:
-      - eureka-server
-    ports:
-      - "9001:9001"
+      kafka:
+        condition: service_healthy
     environment:
-      - EUREKA_SERVER=http://eureka-server:8761/eureka/
       - SPRING_PROFILES_ACTIVE=prod
-    networks:
-      - backend
-
-  result-server:
-    build: ./result-server
-    container_name: result-server
-    depends_on:
-      - eureka-server
-    ports:
-      - "9002:9002"
-    environment:
-      - EUREKA_SERVER=http://eureka-server:8761/eureka/
-      - SPRING_PROFILES_ACTIVE=prod
+    volumes:
+      - ./comparision-server/static:/app/static
+      - ./comparision-server/uploads:/app/uploads
+      - ./comparision-server/temp:/app/temp
     networks:
       - backend
 
@@ -64,12 +88,56 @@ services:
     build: ./leaderboard-server
     container_name: leaderboard-server
     depends_on:
-      - eureka-server
+      mongodb:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_healthy
     ports:
       - "9003:9003"
     environment:
-      - EUREKA_SERVER=http://eureka-server:8761/eureka/
       - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_SERVER=http://eureka-server:8761/eureka/
+      - SPRING_DATA_MONGODB_URI=mongodb://root:mongo123@mongodb:27017/myapp_db?authSource=admin
+    networks:
+      - backend
+
+  grading-server:
+    build: ./grading-server
+    container_name: grading-server
+    depends_on:
+      mongodb:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    ports:
+      - "9002:9002"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_SERVER=http://eureka-server:8761/eureka/
+      - SPRING_DATA_MONGODB_URI=mongodb://root:mongo123@mongodb:27017/myapp_db?authSource=admin
+    networks:
+      - backend
+
+  user-server:
+    build: ./user-server
+    container_name: user-server
+    depends_on:
+      mongodb:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+    ports:
+      - "9004:9004"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_SERVER=http://eureka-server:8761/eureka/
+      - SPRING_DATA_MONGODB_URI=mongodb://root:mongo123@mongodb:27017/myapp_db?authSource=admin
     networks:
       - backend
 

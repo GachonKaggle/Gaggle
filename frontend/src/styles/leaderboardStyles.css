@@ -1,0 +1,109 @@
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1rem;
+  margin-top: 2rem;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  border: 1px solid #e5e7eb;
+  padding: 14px 10px;
+  text-align: center;
+  color: #222;
+}
+
+.leaderboard-table th {
+  background-color: #f8fafc;
+  font-weight: 700;
+  color: #222;
+}
+
+.leaderboard-table tr:nth-child(even) {
+  background-color: #f6f6f6;
+}
+
+.leaderboard-table tr:hover {
+  background-color: #f1f5f9;
+}
+
+.highlight-row {
+  background-color: #fffbe7 !important;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .leaderboard-table th, .leaderboard-table td {
+    padding: 10px 4px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .leaderboard-table th, .leaderboard-table td {
+    padding: 8px 2px;
+    font-size: 0.9rem;
+  }
+}
+
+.task-card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  justify-content: center;
+  margin-top: 2.5rem;
+}
+
+.task-card {
+  min-width: 130px;
+  padding: 1.1rem 1.8rem;
+  font-size: 1.05rem;
+  border-radius: 16px;
+  background: #fff;
+  border: none;
+  color: #374151;
+  box-shadow: 0 2px 8px rgba(120,140,180,0.10);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: 
+    box-shadow 0.18s cubic-bezier(.55,.09,.68,.53),
+    transform 0.19s,
+    background 0.15s,
+    color 0.14s;
+  outline: none;
+  position: relative;
+  border: 1px solid #e3e6ee;
+}
+
+.task-card:hover, .task-card:focus {
+  box-shadow: 0 4px 20px rgba(30,40,80,0.14);
+  background: #e6f2ff;
+  color: #0073e6;
+  transform: translateY(-4px) scale(1.04);
+  border: 1.5px solid #b3d4fc;
+}
+
+@media (max-width: 900px) {
+  .task-card {
+    min-width: 110px;
+    padding: 0.7rem 1.1rem;
+    font-size: 0.98rem;
+  }
+}
+@media (max-width: 600px) {
+  .task-card-list {
+    gap: 0.60rem;
+  }
+  .task-card {
+    min-width: 85px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.93rem;
+    border-radius: 12px;
+  }
+}

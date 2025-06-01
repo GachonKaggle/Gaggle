@@ -1,0 +1,91 @@
+.modal-backdrop {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.33);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  }
+  .modal-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 42px 34px 28px 34px;
+    min-width: 350px;
+    box-shadow: 0 8px 36px rgba(44, 62, 80, 0.18),
+                0 2px 6px rgba(44,62,80,0.09);
+    position: relative;
+    animation: modal-pop 0.17s cubic-bezier(.5,1.7,.62,.98);
+  }
+  @keyframes modal-pop {
+    0% { transform: scale(0.92); opacity: 0.5;}
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .close-btn {
+    position: absolute; top: 13px; right: 18px; font-size: 26px;
+    background: none; border: none; color: #888; cursor: pointer;
+    transition: color .14s;
+  }
+  .close-btn:hover { color: #e74c3c; }
+  h2 {
+    font-weight: 700;
+    font-size: 1.34rem;
+    color: #222d4a;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+  .modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .modal-label {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .modal-input {
+    border: 1.5px solid #dedfe8;
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-size: 1rem;
+    transition: border .15s;
+  }
+  .modal-input:focus {
+    border-color: #5566ff;
+    outline: none;
+  }
+  .modal-submit {
+    margin-top: 18px;
+    background: linear-gradient(90deg, #637aff 70%, #39cfff 100%);
+    color: #fff;
+    font-weight: 700;
+    border: none;
+    border-radius: 7px;
+    padding: 11px 0;
+    font-size: 1.07rem;
+    cursor: pointer;
+    box-shadow: 0 1.5px 5px rgba(44,62,80,0.06);
+    transition: background .24s, transform .07s;
+  }
+  .modal-submit:hover {
+    background: linear-gradient(90deg, #5566ff 60%, #0ddaff 100%);
+    transform: translateY(-2px) scale(1.03);
+  }
+  .modal-footer {
+    text-align: right;
+    margin-top: 16px;
+  }
+  .modal-cancel {
+    background: none;
+    border: none;
+    color: #a3aacf;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 6px;
+    transition: color .15s, background .07s;
+  }
+  .modal-cancel:hover { color: #1b2982; background: #eef3fa;}
+  

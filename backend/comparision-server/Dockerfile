@@ -1,12 +1,23 @@
-# Dockerfile
-FROM openjdk:17
+FROM python:3.9-slim
 
+WORKDIR /comparision-server
 
-# JAR 파일이 빌드 결과로 이 위치에 있다고 가정 (빌드 스크립트에 맞게 수정)
-COPY build/libs/*.jar app.jar
+# OpenCV를 위해 필요한 시스템 패키지 설치 (libGL, glib, 등)
+RUN apt-get update && \
+    apt-get install -y \
+        libgl1-mesa-glx \
+        libglib2.0-0 \
+        libsm6 \
+        libxrender1 \
+        libxext6 && \
+    rm -rf /var/lib/apt/lists/*
 
-# 환경변수로 포트(옵션)
-ENV SERVER_PORT=9001
+# 의존성 설치
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 애플리케이션 실행
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# 소스코드 복사
+COPY . .
+
+# 앱 실행 (예: Flask)
+CMD ["sh", "-c", "python -u -m mykafka.consumer & python -u -m mykafka.taskconsumer & wait"]

@@ -6,7 +6,7 @@ FROM openjdk:17
 COPY build/libs/*.jar app.jar
 
 # 환경변수로 포트(옵션)
-ENV SERVER_PORT=9002
+ENV SERVER_PORT=9003
 
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]

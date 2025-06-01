@@ -1,5 +1,5 @@
 #!/bin/bash
-for dir in api-gateway eureka-server result-server comparision-server leaderboard-server; do
+for dir in api-gateway eureka-server grading-server leaderboard-server user-server; do
     echo "========================="
     echo "$dir 빌드 중..."
     cd $dir

@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  strike-server:
+    build: .
+    container_name: grading-server
+    ports:
+      - "9002:9002"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+    networks:
+      - grading_net
+networks:
+  grading_net:
+    driver: bridge

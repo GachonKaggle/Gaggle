@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  strike-server:
+    build: .
+    container_name: user-info-server
+    ports:
+      - "9007:9007"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+    networks:
+      - user_info_net
+networks:
+  user_info_net:
+    driver: bridge

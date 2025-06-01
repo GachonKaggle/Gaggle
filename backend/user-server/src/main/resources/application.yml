@@ -1,0 +1,17 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://root:mongo123@mongodb:27017/myapp_db?authSource=admin
+
+  application:
+    name: user-info-server
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+jwt:
+  secret: "dF2j8Qx1Vp9!tBrS4l7Ae6Zp3Yw0LmCiOkJrHuZw9@GqVt5NcXh8PuLa2MqDnRoWcSvXbUcZyQnFgLkJt9EzRkBvWaXcYsUqNmTlPoHrGeDbFhQk"

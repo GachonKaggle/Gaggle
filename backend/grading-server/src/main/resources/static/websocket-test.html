@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Task 실시간 수신 (progress+result, task 각각 별도 구독)</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body { background: #1e222b; color: #e0e0e0; font-family: 'Segoe UI', Arial, sans-serif; }
+        h2 { color: #aef3ae; }
+        #progresslog, #resultlog, #tasklog { background: #23272e; color: #7fe0ff; padding: 12px; border-radius: 7px; min-height: 80px; font-size:1rem;}
+        label { color: #e8e8e8; font-size: 1rem; }
+        button { margin-left: 5px; color: #222; background: #aef3ae; border: none; padding: 6px 14px; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #5ddc5d; }
+    </style>
+</head>
+<body>
+    <h2>WebSocket Task 실시간 수신 (progress+result, task 각각 구독)</h2>
+    <div>
+        <label>사용자토큰: <input type="text" id="token" /></label>
+        <button onclick="subscribeProgressResult()">progress & result 구독(한 번에 연결)</button>
+        <button onclick="subscribeTask()">task 구독/해제</button>
+    </div>
+    <hr>
+    <h3>진행(progress) 메시지</h3>
+    <pre id="progresslog"></pre>
+    <h3>채점결과(result) 메시지</h3>
+    <pre id="resultlog"></pre>
+    <h3>Task 완료/실패(task) 메시지</h3>
+    <pre id="tasklog"></pre>
+
+    <script>
+        // progress/result용 소켓/구독
+        let prStompClient = null;
+        let prProgressSub = null;
+        let prResultSub = null;
+        let prConnected = false;
+
+        // task용 소켓/구독
+        let taskStompClient = null;
+        let taskSub = null;
+        let taskConnected = false;
+        let taskSubscribed = false;
+
+        function prettyJson(text) {
+            try {
+                const obj = JSON.parse(text);
+                return JSON.stringify(obj, null, 2);
+            } catch (e) {
+                return text;
+            }
+        }
+
+        function subscribeProgressResult() {
+            const token = document.getElementById("token").value.trim();
+            if (!token) {
+                alert('사용자 토큰을 입력하세요!');
+                return;
+            }
+            // 이미 연결돼 있으면 해제 후 재연결
+            unsubscribeProgressResult();
+
+            const socket = new SockJS('/ws-progress');
+            prStompClient = Stomp.over(socket);
+            
+            prStompClient.connect({}, function(frame) {
+                prConnected = true;
+                clearLogs();
+                prProgressSub = prStompClient.subscribe('/topic/progress/' + token, function(message) {
+                    document.getElementById('progresslog').textContent = prettyJson(message.body);
+                });
+                prResultSub = prStompClient.subscribe('/topic/result/' + token, function(message) {
+                    document.getElementById('resultlog').textContent = prettyJson(message.body);
+                });
+            }, function(err) {
+                prConnected = false;
+                alert('WebSocket(progress/result) 연결 실패: ' + err);
+            });
+        }
+
+        function unsubscribeProgressResult() {
+            if (prProgressSub) { prProgressSub.unsubscribe(); prProgressSub = null; }
+            if (prResultSub) { prResultSub.unsubscribe(); prResultSub = null; }
+            if (prStompClient) {
+                prStompClient.disconnect(() => {});
+                prStompClient = null;
+            }
+            prConnected = false;
+            clearLogs();
+        }
+
+        function subscribeTask() {
+            const token = document.getElementById("token").value.trim();
+            if (!token) {
+                alert('사용자 토큰을 입력하세요!');
+                return;
+            }
+            if (taskSubscribed) {
+                // 이미 구독 중이면 해제
+                unsubscribeTask();
+                return;
+            }
+            // 소켓 연결
+            const socket = new SockJS('/ws-progress');
+            taskStompClient = Stomp.over(socket);
+
+            taskStompClient.connect({}, function(frame) {
+                taskConnected = true;
+                taskSub = taskStompClient.subscribe('/topic/task/' + token, function(message) {
+                    document.getElementById('tasklog').textContent = prettyJson(message.body);
+                });
+                taskSubscribed = true;
+            }, function(err) {
+                taskConnected = false;
+                alert('WebSocket(task) 연결 실패: ' + err);
+            });
+        }
+
+        function unsubscribeTask() {
+            if (taskSub) { taskSub.unsubscribe(); taskSub = null; }
+            if (taskStompClient) {
+                taskStompClient.disconnect(() => {});
+                taskStompClient = null;
+            }
+            taskConnected = false;
+            taskSubscribed = false;
+            document.getElementById('tasklog').textContent = '';
+        }
+
+        function clearLogs() {
+            document.getElementById('progresslog').textContent = '';
+            document.getElementById('resultlog').textContent = '';
+        }
+    </script>
+</body>
+</html>
